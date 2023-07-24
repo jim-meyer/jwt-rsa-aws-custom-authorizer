@@ -48,23 +48,29 @@ module.exports.authenticate = (params) => {
     if (!decoded || !decoded.header || !decoded.header.kid) {
         throw new Error('invalid token');
     }
+    console.log('*** decoded: ', decoded);
 
     const getSigningKey = util.promisify(client.getSigningKey);
+    console.log('*** returning');
     return getSigningKey(decoded.header.kid)
         .then((key) => {
             const signingKey = key.publicKey || key.rsaPublicKey;
             return jwt.verify(token, signingKey, jwtOptions);
         })
-        .then((decoded)=> ({
-            principalId: decoded.sub,
-            policyDocument: getPolicyDocument('Allow', params.methodArn),
-            context: { scope: decoded.scope }
-        }));
+        .then((decoded)=> {
+            const result = {
+                principalId: decoded.sub,
+                policyDocument: getPolicyDocument('Allow', params.methodArn),
+                context: { scope: decoded.scope, sub: decoded.sub, email: decoded.email }
+            };
+            console.log('*** result: ', result);
+            return result;
+        });
 }
 
  const client = jwksClient({
         cache: true,
         rateLimit: true,
-        jwksRequestsPerMinute: 10, // Default value
+        jwksRequestsPerMinute: 100, // Default value
         jwksUri: process.env.JWKS_URI
   });
