@@ -48,7 +48,7 @@ module.exports.authenticate = (params) => {
     if (!decoded || !decoded.header || !decoded.header.kid) {
         throw new Error('invalid token');
     }
-    console.log('*** decoded: ', decoded);
+    console.log('*** decoded: ', JSON.stringify(decoded));
 
     const getSigningKey = util.promisify(client.getSigningKey);
     console.log('*** returning');
@@ -63,7 +63,7 @@ module.exports.authenticate = (params) => {
                 policyDocument: getPolicyDocument('Allow', params.methodArn),
                 context: { scope: decoded.scope, sub: decoded.sub, email: decoded.email }
             };
-            console.log('*** result: ', result);
+            console.log('*** result: ', JSON.stringify(result));
             return result;
         });
 }
