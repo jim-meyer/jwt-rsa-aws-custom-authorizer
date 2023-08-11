@@ -40,15 +40,13 @@ const jwtOptions = {
     issuer: process.env.TOKEN_ISSUER
 };
 
-module.exports.authenticate = (params) => {
-    console.log(params);
-    const token = getToken(params);
-
+module.exports.authenticateToken = (token, methodArn) => {
+    console.log('*** token: ' + token);
     const decoded = jwt.decode(token, { complete: true });
+    console.log('*** decoded: ', JSON.stringify(decoded));
     if (!decoded || !decoded.header || !decoded.header.kid) {
         throw new Error('invalid token');
     }
-    console.log('*** decoded: ', JSON.stringify(decoded));
 
     const getSigningKey = util.promisify(client.getSigningKey);
     console.log('*** returning');
@@ -60,13 +58,19 @@ module.exports.authenticate = (params) => {
         .then((decoded)=> {
             const result = {
                 principalId: decoded.sub,
-                policyDocument: getPolicyDocument('Allow', params.methodArn),
+                policyDocument: getPolicyDocument('Allow', methodArn),
                 context: { scope: decoded.scope, sub: decoded.sub, email: decoded.email }
             };
             console.log('*** result: ', JSON.stringify(result));
             return result;
         });
-}
+};
+
+module.exports.authenticate = (params) => {
+    console.log(params);
+    const token = getToken(params, params.methodArn);
+    return module.exports.authenticateToken(token);
+};
 
  const client = jwksClient({
         cache: true,
