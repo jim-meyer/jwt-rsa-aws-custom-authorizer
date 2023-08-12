@@ -41,15 +41,13 @@ const jwtOptions = {
 };
 
 module.exports.authenticateToken = (token, methodArn) => {
-    console.log('*** token: ' + token);
     const decoded = jwt.decode(token, { complete: true });
-    console.log('*** decoded: ', JSON.stringify(decoded));
+    // console.log('*** decoded: ', JSON.stringify(decoded));
     if (!decoded || !decoded.header || !decoded.header.kid) {
         throw new Error('invalid token');
     }
 
     const getSigningKey = util.promisify(client.getSigningKey);
-    console.log('*** returning');
     return getSigningKey(decoded.header.kid)
         .then((key) => {
             const signingKey = key.publicKey || key.rsaPublicKey;
@@ -59,17 +57,18 @@ module.exports.authenticateToken = (token, methodArn) => {
             const result = {
                 principalId: decoded.sub,
                 policyDocument: getPolicyDocument('Allow', methodArn),
-                context: { scope: decoded.scope, sub: decoded.sub, email: decoded.email }
+                context: { scope: decoded.scope, sub: decoded.sub, email: decoded['https://buckfinderapp.com/claims/email'] }
             };
-            console.log('*** result: ', JSON.stringify(result));
             return result;
         });
 };
 
-module.exports.authenticate = (params) => {
+module.exports.authenticate = async (params) => {
     console.log(params);
-    const token = getToken(params, params.methodArn);
-    return module.exports.authenticateToken(token);
+    const token = getToken(params);
+    const result = await module.exports.authenticateToken(token, params.methodArn);
+    console.log('*** result: ', JSON.stringify(result));
+    return result;
 };
 
  const client = jwksClient({
