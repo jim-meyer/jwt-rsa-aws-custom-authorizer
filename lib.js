@@ -18,12 +18,12 @@ const getPolicyDocument = (effect, resource) => {
 
 
 // extract and return the Bearer Token from the Lambda event parameters
-const getToken = (params) => {
-    if (!params.type || params.type !== 'TOKEN') {
+const getToken = (event) => {
+    if (!event.type || event.type !== 'TOKEN') {
         throw new Error('Expected "event.type" parameter to have value "TOKEN"');
     }
 
-    const tokenString = params.authorizationToken;
+    const tokenString = event.authorizationToken;
     if (!tokenString) {
         throw new Error('Expected "event.authorizationToken" parameter to be set');
     }
@@ -54,6 +54,7 @@ module.exports.authenticateToken = (token, methodArn) => {
             return jwt.verify(token, signingKey, jwtOptions);
         })
         .then((decoded)=> {
+            console.log('*** decoded: ', JSON.stringify(decoded));
             const result = {
                 principalId: decoded.sub,
                 policyDocument: getPolicyDocument('Allow', methodArn),
@@ -63,10 +64,10 @@ module.exports.authenticateToken = (token, methodArn) => {
         });
 };
 
-module.exports.authenticate = async (params) => {
-    console.log(params);
-    const token = getToken(params);
-    const result = await module.exports.authenticateToken(token, params.methodArn);
+module.exports.authenticate = async (event) => {
+    // console.log(event);
+    const token = getToken(event);
+    const result = await module.exports.authenticateToken(token, event.methodArn);
     console.log('*** result: ', JSON.stringify(result));
     return result;
 };
