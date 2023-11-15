@@ -54,7 +54,7 @@ module.exports.authenticateToken = (token, methodArn) => {
             return jwt.verify(token, signingKey, jwtOptions);
         })
         .then((decoded)=> {
-            console.log('*** decoded: ', JSON.stringify(decoded));
+            // console.log('*** decoded: ', JSON.stringify(decoded));
             const result = {
                 principalId: decoded.sub,
                 policyDocument: getPolicyDocument('Allow', methodArn),
