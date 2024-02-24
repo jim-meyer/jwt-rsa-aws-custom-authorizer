@@ -41,6 +41,8 @@ const jwtOptions = {
 };
 
 module.exports.authenticateToken = (token, methodArn) => {
+    // console.log('*** authenticateToken(): audience=', jwtOptions.audience);
+    // console.log('*** authenticateToken(): issuer=', jwtOptions.issuer);
     const decoded = jwt.decode(token, { complete: true });
     // console.log('*** decoded: ', JSON.stringify(decoded));
     if (!decoded || !decoded.header || !decoded.header.kid) {
@@ -68,7 +70,7 @@ module.exports.authenticate = async (event) => {
     // console.log(event);
     const token = getToken(event);
     const result = await module.exports.authenticateToken(token, event.methodArn);
-    console.log('*** result: ', JSON.stringify(result));
+    // console.log('*** result: ', JSON.stringify(result));
     return result;
 };
 
