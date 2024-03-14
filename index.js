@@ -35,7 +35,24 @@ module.exports.handler = async (event, context, callback) => {
   }
   catch (err) {
       console.log(err);
-      return context.fail("Unauthorized");
+      // https://stackoverflow.com/questions/71965522/how-to-return-401-response-in-aws-api-gateway-lambda-authorizer pointed me to:
+      //    https://github.com/awslabs/aws-apigateway-lambda-authorizer-blueprints/blob/1e79ad02a4dcbbd0fe2951cf9a5de4aff7915823/blueprints/python/api-gateway-authorizer-python.py#L28
+      // After many hours searching for this in AWS docs to find such a subtle but important blurb squirreled away where it is
+      // impossible to find?! %*#&^ AWS and their *!&% docs.
+      throw new Error('Unauthorized');
+
+      // return context.fail("Unauthorized");
+
+      // Added this based on some articles (didn't save link... grr) but API Gateway was still returning 403, not 401 with these changes
+      // const result = {
+      //   statusCode: 401,
+      //   headers: {
+      //     'X-Amz-Function-Error': 401,
+      //     'Content-Type': 'application/json'
+      //   },
+      //   body: JSON.stringify({ statusCode: 401, message: 'Unauthorized -\_/-' }),
+      // };
+      // context.succeed(result);
   }
   return data;
 };
