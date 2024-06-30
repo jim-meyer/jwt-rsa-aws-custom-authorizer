@@ -10,7 +10,13 @@ const getPolicyDocument = (effect, resource) => {
         Statement: [{
             Action: 'execute-api:Invoke', // default action
             Effect: effect,
-            Resource: resource,
+            // Restricting to the method ARN (`resource`) doesn't play nice with API Gateway's custom authorizer
+            // caching. Problem is that request for Resource1 gets cached and then when request for Resource2 comes
+            // in the cache may be used. But if we use `resource` here it only applies to Resource1 and thus
+            // Resource2 fails authorization.
+            // see https://stackoverflow.com/a/56119016
+            Resource: '*',
+            // Resource: resource,
         }]
     };
     return policyDocument;
